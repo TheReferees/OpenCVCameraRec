@@ -5,11 +5,16 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "com.example.saba.opencvcameratest"
+        applicationId "com.thereferees.opencvcamerarec"
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+
+        ndk {
+            moduleName "app"
+            stl "stlport_static"
+        }
     }
     buildTypes {
         release {
