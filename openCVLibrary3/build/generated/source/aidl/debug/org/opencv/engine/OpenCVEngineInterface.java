@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated.  DO NOT MODIFY.
- * Original file: /Users/Saba/git/OpenCVCameraTest/openCVLibrary3/src/main/aidl/org/opencv/engine/OpenCVEngineInterface.aidl
+ * Original file: /Users/Saba/AndroidStudioProjects/OpenCVCameraRec/openCVLibrary3/src/main/aidl/org/opencv/engine/OpenCVEngineInterface.aidl
  */
 package org.opencv.engine;
 /**
