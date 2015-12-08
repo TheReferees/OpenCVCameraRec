@@ -1,0 +1,5 @@
+set solib-search-path ./obj/local/armeabi
+source /Users/idean/Library/Android/sdk/ndk-bundle/prebuilt/common/gdb/common.setup
+directory /Users/idean/Library/Android/sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include jni/jni/include/opencv jni/jni/include /Users/idean/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.8/include /Users/idean/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi/include /Users/idean/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.8/include/backward
+file ./obj/local/armeabi/app_process
+target remote :5039
