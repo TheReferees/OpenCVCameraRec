@@ -23,8 +23,9 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     private static final String TAG = "MainActivity";
     private CameraBridgeViewBase mOpenCvCameraView;
 
-    public native Object[] findObjects(long addrImage);
-    public native byte[] detectColors(long addrImage);
+    //public native Object[] findObjects(long addrImage);
+    public native byte[] testObjects(long addrImage);
+    //public native byte[] detectColors(long addrImage);
 
     int counter = 0;
 
@@ -108,37 +109,14 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         Log.d(TAG, rgba.toString());
         //int[][] objects = (int[][]) findObjects(rgba.getNativeObjAddr());
         if (counter == 50) {
-            Log.d("MyApp", "ROWS: " + rgba.rows() + ", COLS: " + rgba.cols());
-            for (int i = 0; i < 1; i++) {
-                for (int j = 0; j < 1; j++) {
-                    /*double[] pixel = new double[(int) (rgba.total() * rgba.channels())];
-                    rgba.get(0, 0, pixel);*/
-                    byte pixel[] = new byte[(int) (rgba.total() * rgba.channels())];
-                    rgba.get(j, i, pixel);
-                    Log.d(TAG, "STARTING!");
-                    //logToFile(pixel);
-                    Log.d(TAG, "DONE!");
-                    /*for (int k = 0; k < pixel.length; k += rgba.channels()) {
-                        String log = "RGB: [";
-                        for (int l = 0; l < rgba.channels(); l++) {
-                            log += pixel[k + l];
-                            log += l == rgba.channels() - 1 ? "" : ", ";
-                        }
-                        log += "]\n";
-                        logToFile(log);
+            //TEST FROM JAVA
+            byte pixel[] = new byte[(int) (rgba.total() * rgba.channels())];
+            rgba.get(0, 0, pixel);
+            logToFile(pixel);
 
-                        Log.d("MyApp", log);
-                    }*/
-                    //double[] pixel = rgba.get(j, i);
-                    //Log.d("MyApp", "" + (i * rgba.cols() + j));
-                    //logToFile("" + (i * rgba.cols() + j) + "\n");
-                    //logToFile("(" + j + ", " + i + ")" + " " + "RGB: [" + pixel[2] + ", " + pixel[1] + ", " + pixel[0] + ", " + pixel[3] + "]\n");
-                    //Log.d("MyApp", "(" + j + ", " + i + ")" + " " + "RGBA: [" + pixel[2] + ", " + pixel[1] + ", " + pixel[0] + ", " + pixel[3] + "]");
-                }
-            }
-            byte[] bytes = detectColors(rgba.getNativeObjAddr());
-            Log.d("MyApp", "GAWDDDDD");
-            logToFile(bytes);
+            //TEST FROM C++
+            //byte[] bytes = testObjects(rgba.getNativeObjAddr());
+            //logToFile(bytes);
         } else {
             //Log.d(TAG, "" + counter);
         }

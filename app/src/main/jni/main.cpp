@@ -29,7 +29,7 @@ int y_arr[256];
 int u_arr[256];
 int v_arr[256];
 
-struct color {
+struct Color {
     std::string name = "";
     int r;
     int g;
@@ -48,13 +48,13 @@ struct region {
         mass = 1;
     }
     
-    color color;
+    Color color;
     int colorBits;
 };
 
 std::vector<int> pixelColors;
 
-color rgbColors[8];
+Color rgbColors[8];
 
 std::vector<region> blobs;
 int blobsCount;
@@ -68,7 +68,7 @@ inline int get_min(int x, int y) {
 }
 
 //Returns color for a pixel's value from the bitwise operations.
-inline color colorFromBits(int colorBits) {
+inline Color colorFromBits(int colorBits) {
     return rgbColors[(int) (log(colorBits) / log(2))];
 }
 
@@ -390,12 +390,11 @@ std::vector<char> createTestImage(cv::Mat& image) {
             int color_r = image.at<cv::Vec4b>(y, x)[0];
             int color_g = image.at<cv::Vec4b>(y, x)[1];
             int color_b = image.at<cv::Vec4b>(y, x)[2];
-            colors[i] = (char) color_r;
-            colors[i + 1] = (char) color_g;
-            colors[i + 2] = (char) color_b;
-            colors[i + 3] = (char) 255;
+            testImage[i] = (char) color_r;
+            testImage[i + 1] = (char) color_g;
+            testImage[i + 2] = (char) color_b;
+            testImage[i + 3] = (char) 255;
             i += 4;
-
         }
     }
     
@@ -406,29 +405,29 @@ std::vector<char> createTestImage(cv::Mat& image) {
         int maxY = blobs[i].maxY;
 
         for (int x = minX; x <= maxX; x++) {
-            changed(x, minY, 0) = blobs[i].color.r;
-            changed(x, minY, 1) = blobs[i].color.g;
-            changed(x, minY, 2) = blobs[i].color.b;
+            testImage[minY * image.cols + x] = blobs[i].color.r;
+            testImage[minY * image.cols + x + 1] = blobs[i].color.g;
+            testImage[minY * image.cols + x + 2] = blobs[i].color.b;
 
-            changed(x, maxY, 0) = blobs[i].color.r;
-            changed(x, maxY, 1) = blobs[i].color.g;
-            changed(x, maxY, 2) = blobs[i].color.b;
+            testImage[maxY * image.cols + x + 0] = blobs[i].color.r;
+            testImage[minY * image.cols + x + 1] = blobs[i].color.g;
+            testImage[minY * image.cols + x + 2] = blobs[i].color.b;
 
             for (int y = minY; y <= maxY; y++) {
-                changed(minX, y, 0) = blobs[i].color.r;
-                changed(minX, y, 1) = blobs[i].color.g;
-                changed(minX, y, 2) = blobs[i].color.b;
+                testImage[y * image.cols + minX] = blobs[i].color.r;
+                testImage[y * image.cols + minX] = blobs[i].color.g;
+                testImage[y * image.cols + minX] = blobs[i].color.b;
 
-                changed(maxX, y, 0) = blobs[i].color.r;
-                changed(maxX, y, 1) = blobs[i].color.g;
-                changed(maxX, y, 2) = blobs[i].color.b;
+                testImage[y * image.cols + maxX] = blobs[i].color.r;
+                testImage[y * image.cols + maxX] = blobs[i].color.g;
+                testImage[y * image.cols + maxX] = blobs[i].color.b;
             }
         }
     }
 }
 
 //Get the blobs for the Java
-void getBlobs(cv::Mat& image) {
+std::vector<char> getBlobs(cv::Mat& image) {
     //CImg<T> converted = image.get_RGBtoYCbCr();
 
     //__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "HERE0");
@@ -441,8 +440,11 @@ void getBlobs(cv::Mat& image) {
     mergeDensities();
     //__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "HERE3");
 
-    createTestImage(image);
+    std::vector<char> byteArray = createTestImage(image);
     //__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "HERE4");
+    createTestImage(image);
+    //__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "HERE5");
+    return byteArray;
 }
 
 //returns array of arrays which are in this format: [[minX, maxX, minY, maxY, mass, colorBits]]
@@ -455,7 +457,7 @@ extern "C" {
         jobjectArray returnedObjects = env->NewObjectArray(blobs.size(), env->GetObjectClass(temp), NULL);
 
 
-        for (int i = 0; i < /*blobs.size()*/1; i++) {
+        for (int i = 0; i < blobs.size(); i++) {
             region* b = &blobs[i];
 
             jintArray blob = env->NewIntArray(6);
@@ -468,10 +470,24 @@ extern "C" {
 
         return returnedObjects;
     }
-
-    JNIEXPORT jbyteArray JNICALL Java_com_thereferees_opencvcamerarec_MainActivity_detectColors( JNIEnv* env, jobject, jlong addrImage) {
+    
+    JNIEXPORT jbyteArray JNICALL Java_com_thereferees_opencvcamerarec_MainActivity_testObjects( JNIEnv* env, jobject, jlong addrImage) {
         cv::Mat* image = (cv::Mat*)addrImage;
-        std::vector<char> colors = detectColors(*image);
+        std::vector<char> charArray = getBlobs(*image);
+        
+        jbyte* byteArray = new jbyte[image->total() * 4];
+        for (int i = 0; i < image->total() * 4; i++) {
+            byteArray[i] = ((charArray)[i]);
+        }
+        jbyteArray pixelArray = env->NewByteArray(image->total() * 4);
+        env->SetByteArrayRegion(pixelArray, 0, image->total() * 4, byteArray);
+        delete [] byteArray;
+        return pixelArray;
+    }
+
+    /*JNIEXPORT jbyteArray JNICALL Java_com_thereferees_opencvcamerarec_MainActivity_detectColors( JNIEnv* env, jobject, jlong addrImage) {
+        cv::Mat* image = (cv::Mat*)addrImage;
+        detectColors(*image);
 
         jbyte* byteArray = new jbyte[image->total() * 4];
         for (int i = 0; i < image->total() * 4; i++) {
@@ -481,7 +497,7 @@ extern "C" {
         env->SetByteArrayRegion(colorArray, 0, image->total() * 4, byteArray);
         delete [] byteArray;
         return colorArray;
-    }
+    }*/
 }
 
 int main(){
