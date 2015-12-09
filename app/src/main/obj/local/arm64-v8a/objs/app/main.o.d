@@ -45,6 +45,8 @@ obj/local/arm64-v8a/objs/app/main.o: jni/main.cpp \
  jni/jni/include/opencv2/video/tracking_c.h \
  jni/jni/include/opencv2/objdetect/objdetect_c.h \
  /Users/idean/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/deque \
+ jni/jni/include/opencv2/imgproc/imgproc.hpp \
+ jni/jni/include/opencv2/imgproc.hpp \
  /Users/idean/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/iostream \
  /Users/idean/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-arm64/usr/include/android/log.h
 
@@ -145,6 +147,10 @@ jni/jni/include/opencv2/video/tracking_c.h:
 jni/jni/include/opencv2/objdetect/objdetect_c.h:
 
 /Users/idean/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/deque:
+
+jni/jni/include/opencv2/imgproc/imgproc.hpp:
+
+jni/jni/include/opencv2/imgproc.hpp:
 
 /Users/idean/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/iostream:
 

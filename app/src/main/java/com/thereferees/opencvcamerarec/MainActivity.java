@@ -110,13 +110,14 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         //int[][] objects = (int[][]) findObjects(rgba.getNativeObjAddr());
         if (counter == 50) {
             //TEST FROM JAVA
-            byte pixel[] = new byte[(int) (rgba.total() * rgba.channels())];
+            /*byte pixel[] = new byte[(int) (rgba.total() * rgba.channels())];
             rgba.get(0, 0, pixel);
-            logToFile(pixel);
+            logToFile(pixel);*/
 
             //TEST FROM C++
-            //byte[] bytes = testObjects(rgba.getNativeObjAddr());
-            //logToFile(bytes);
+            byte[] bytes = testObjects(rgba.getNativeObjAddr());
+            Log.d("MyApp", "" + bytes.length + " =? " + rgba.total() * rgba.channels());
+            logToFile(bytes);
         } else {
             //Log.d(TAG, "" + counter);
         }
