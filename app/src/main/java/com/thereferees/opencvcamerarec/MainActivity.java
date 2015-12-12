@@ -16,15 +16,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements CvCameraViewListener2 {
 
     private static final String TAG = "MainActivity";
     private CameraBridgeViewBase mOpenCvCameraView;
 
-    //public native Object[] findObjects(long addrImage);
-    public native byte[] testObjects(long addrImage);
+    public native Object[] findObjects(long addrImage);
+    //public native byte[] testObjects(long addrImage);
     //public native byte[] detectColors(long addrImage);
 
     int counter = 0;
@@ -107,23 +107,36 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         //Imgproc.cvtColor(rgba, rgba, Imgproc.COLOR_BGRA2RGBA, 4);
 
         Log.d(TAG, rgba.toString());
-        //int[][] objects = (int[][]) findObjects(rgba.getNativeObjAddr());
         if (counter == 50) {
+            int[][] objects = (int[][]) findObjects(rgba.getNativeObjAddr());
+            int[][] vectors = findVectors(objects, rgba);
+            Log.d("MyApp", Arrays.deepToString(vectors));
             //TEST FROM JAVA
             /*byte pixel[] = new byte[(int) (rgba.total() * rgba.channels())];
             rgba.get(0, 0, pixel);
             logToFile(pixel);*/
 
             //TEST FROM C++
-            byte[] bytes = testObjects(rgba.getNativeObjAddr());
-            Log.d("MyApp", "" + bytes.length + " =? " + rgba.total() * rgba.channels());
-            logToFile(bytes);
+            //byte[] bytes = testObjects(rgba.getNativeObjAddr());
+            //Log.d("MyApp", "" + bytes.length + " =? " + rgba.total() * rgba.channels());
+            //logToFile(bytes);
         } else {
             //Log.d(TAG, "" + counter);
         }
         counter++;
         //Log.d(TAG, Arrays.deepToString(objects));
         return rgba;
+    }
+
+    private int[][] findVectors(int[][] objects, Mat rgba) {
+        int[][] vectors = new int[objects.length][3];
+        for (int i = 0; i < objects.length; i++) {
+            double center = ((objects[i][0] + objects[i][1]) / 2.0);
+            vectors[i][0] = (int)(center * 180.0 / (rgba.cols())); //X-value
+            vectors[i][1] = objects[i][4]; //mass
+            vectors[i][2] = objects[i][5]; //colorbits
+        }
+        return vectors;
     }
 
     private void newFile() {

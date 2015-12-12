@@ -26,7 +26,7 @@
 
 //using namespace cimg_library;
 
-int y_arr[256];
+int y_arr[180];
 int u_arr[256];
 int v_arr[256];
 
@@ -98,19 +98,21 @@ bool setYUVColors() {
         
         if (n == 6) {
             //clip values to 0-256 and add 1 bit to the front of all values in range.
-            y1 = get_max(y1, 0);
-            y2 = get_min(y2, 256);
-            for (int j = y1; j < y2; j++) {
-                y_arr[j] |= (1 << i);
+            y1 = get_max(y1, -180);
+            y2 = get_min(y2, 180);
+            for (int j = y1; j <= y2; j++) {
+                y_arr[j < 0 ? 180 + j : j] |= (1 << i);
             }
+            
             u1 = get_max(u1, 0);
-            u2 = get_min(u2, 256);
-            for (int j = u1; j < u2; j++) {
+            u2 = get_min(u2, 255);
+            for (int j = u1; j <= u2; j++) {
                 u_arr[j] |= (1 << i);
             }
+            
             v1 = get_max(v1, 0);
-            v2 = get_min(v2, 256);
-            for (int j = v1; j < v2; j++) {
+            v2 = get_min(v2, 255);
+            for (int j = v1; j <= v2; j++) {
                 v_arr[j] |= (1 << i);
             }
         }
@@ -121,10 +123,12 @@ bool setYUVColors() {
 
 //load the colors
 bool loadColors() {
-    for (int i = 0; i < 256; i++) {
+    for (int i = 0; i < 180; i++) {
         y_arr[i] = 0;
-        u_arr[i] = 0;
-        v_arr[i] = 0;
+        if (i < 100) {
+            u_arr[i] = 0;
+            v_arr[i] = 0;
+        }
     }
     
     if (!setYUVColors())
@@ -132,7 +136,7 @@ bool loadColors() {
     
     //set rgb values for colors
     rgbColors[0].r = 255;
-    rgbColors[0].g = 0;
+    rgbColors[0].g = 255;
     rgbColors[0].b = 0;
     rgbColors[0].name = "Red";
     
@@ -235,8 +239,8 @@ void labelCells(cv::Mat& image, std::vector<unsigned int> labelBuffer, std::vect
 void findRegions(cv::Mat& image) {
     __android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "REGIONS0");
 
-    int width = image.rows;
-    int height = image.cols;
+    int width = image.cols;
+    int height = image.rows;
     __android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "REGIONS1");
 
     //values correspond to indeces of regionsTable array (map of label to region)
@@ -327,21 +331,20 @@ void mergeDensities() {
 
 //Detect the colors by confirming the color is within the ranges in the Y, U, and V arrays.
 void detectColors(cv::Mat& image) {
-    /*std::vector<char> colors;
-    colors.resize(image.cols * image.rows * 4);*/
-    //int i = 0;
     for (int y = 0; y < image.rows; y++) {
         for (int x = 0; x < image.cols; x++) {
             int color_y = image.at<cv::Vec3b>(y, x)[0];
-            int color_u = image.at<cv::Vec3b>(y, x)[2];
-            int color_v = image.at<cv::Vec3b>(y, x)[1];
-            /*colors[i] = (char) color_r;
-            colors[i + 1] = (char) color_g;
-            colors[i + 2] = (char) color_b;
-            colors[i + 3] = (char) 255;
-            i += 4;*/
+            int color_u = image.at<cv::Vec3b>(y, x)[1];
+            int color_v = image.at<cv::Vec3b>(y, x)[2];
 
             int colorBits = (y_arr[color_y] & u_arr[color_u]) & v_arr[color_v];
+            
+            if (x == 400 && y == 450) {
+                __android_log_print(ANDROID_LOG_VERBOSE, "TestColors", "Matching colors check new: (%i, %i, %i)", color_y, color_u, color_v);
+                __android_log_print(ANDROID_LOG_VERBOSE, "TestColors", "Array vals: (%i, %i, %i)", y_arr[color_y], u_arr[color_u], v_arr[color_v]);
+            }
+            
+            //if (colorBits != 0) __android_log_print(ANDROID_LOG_VERBOSE, "TestColors", "Matching colors check matched: (%i, %i, %i), %i x %i", color_y, color_u, color_v, x, y);
             
             pixelColors.push_back(colorBits);
         }
@@ -423,24 +426,24 @@ std::vector<char> createTestImage(cv::Mat& image) {
         __android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "TESTIMAGE5");
         for (int x = minX; x <= maxX; x++) {
             //__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "TESTIMAGE6");
-            testImage[3*(minY * image.cols + x)] = blobs[i].color.r;
-            testImage[3*(minY * image.cols + x) + 1] = blobs[i].color.g;
-            testImage[3*(minY * image.cols + x) + 2] = blobs[i].color.b;
+            testImage[4*(minY * image.cols + x)] = blobs[i].color.r;
+            testImage[4*(minY * image.cols + x) + 1] = blobs[i].color.g;
+            testImage[4*(minY * image.cols + x) + 2] = blobs[i].color.b;
 
-            testImage[3*(maxY * image.cols + x) + 0] = blobs[i].color.r;
-            testImage[3*(minY * image.cols + x) + 1] = blobs[i].color.g;
-            testImage[3*(minY * image.cols + x) + 2] = blobs[i].color.b;
+            testImage[4*(maxY * image.cols + x) + 0] = blobs[i].color.r;
+            testImage[4*(maxY * image.cols + x) + 1] = blobs[i].color.g;
+            testImage[4*(maxY * image.cols + x) + 2] = blobs[i].color.b;
             //__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "TESTIMAGE7");
         }
         for (int y = minY; y <= maxY; y++) {
             //__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "TESTIMAGE8");
-            testImage[3*(y * image.cols + minX)] = blobs[i].color.r;
-            testImage[3*(y * image.cols + minX) + 1] = blobs[i].color.g;
-            testImage[3*(y * image.cols + minX) + 2] = blobs[i].color.b;
+            testImage[4*(y * image.cols + minX)] = blobs[i].color.r;
+            testImage[4*(y * image.cols + minX) + 1] = blobs[i].color.g;
+            testImage[4*(y * image.cols + minX) + 2] = blobs[i].color.b;
             //__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "TESTIMAGE9");
-            testImage[3*(y * image.cols + maxX) + 0] = blobs[i].color.r;
-            testImage[3*(y * image.cols + maxX) + 1] = blobs[i].color.g;
-            testImage[3*(y * image.cols + maxX) + 2] = blobs[i].color.b;
+            testImage[4*(y * image.cols + maxX) + 0] = blobs[i].color.r;
+            testImage[4*(y * image.cols + maxX) + 1] = blobs[i].color.g;
+            testImage[4*(y * image.cols + maxX) + 2] = blobs[i].color.b;
         }
     }
     __android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "TESTIMAGE10");
@@ -449,13 +452,18 @@ std::vector<char> createTestImage(cv::Mat& image) {
 
 cv::Mat RGBtoYUV(cv::Mat& image) {
     cv::Mat converted = image.clone();
-    cv::cvtColor(image, converted, CV_BGR2YCrCb, 3);
+    cv::cvtColor(image, converted, CV_RGB2HSV);
     return converted;
 }
 
 //Get the blobs for the Java
 std::vector<char> getBlobs(cv::Mat& image) {
+    int color_y = image.at<cv::Vec4b>(450, 400)[0];
+    int color_u = image.at<cv::Vec4b>(450, 400)[1];
+    int color_v = image.at<cv::Vec4b>(450, 400)[2];
+    __android_log_print(ANDROID_LOG_VERBOSE, "TestColors", "Matching colors check rgb: (%i, %i, %i)", color_y, color_u, color_v);
     cv::Mat converted = RGBtoYUV(image);
+    //cv::Mat converted = image.clone();
     loadColors();
     __android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "HERE0");
     detectColors(converted);
