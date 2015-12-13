@@ -24,8 +24,7 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     private CameraBridgeViewBase mOpenCvCameraView;
 
     public native Object[] findObjects(long addrImage);
-    //public native byte[] testObjects(long addrImage);
-    //public native byte[] detectColors(long addrImage);
+    public native byte[] testObjects(long addrImage);
 
     int counter = 0;
 
@@ -104,30 +103,14 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat rgba = inputFrame.rgba();
-        //Imgproc.cvtColor(rgba, rgba, Imgproc.COLOR_BGRA2RGBA, 4);
-
-        Log.d(TAG, rgba.toString());
-        if (counter == 50) {
-            int[][] objects = (int[][]) findObjects(rgba.getNativeObjAddr());
-            int[][] vectors = findVectors(objects, rgba);
-            Log.d("MyApp", Arrays.deepToString(vectors));
-            //TEST FROM JAVA
-            /*byte pixel[] = new byte[(int) (rgba.total() * rgba.channels())];
-            rgba.get(0, 0, pixel);
-            logToFile(pixel);*/
-
-            //TEST FROM C++
-            //byte[] bytes = testObjects(rgba.getNativeObjAddr());
-            //Log.d("MyApp", "" + bytes.length + " =? " + rgba.total() * rgba.channels());
-            //logToFile(bytes);
-        } else {
-            //Log.d(TAG, "" + counter);
-        }
-        counter++;
-        //Log.d(TAG, Arrays.deepToString(objects));
+        //testNDKCode(rgba);
+        int[][] objects = (int[][]) findObjects(rgba.getNativeObjAddr());
+        int[][] vectors = findVectors(objects, rgba);
+        Log.d(TAG, Arrays.deepToString(vectors));
         return rgba;
     }
 
+    //Returns an array of [direction, mass, color] for each object.
     private int[][] findVectors(int[][] objects, Mat rgba) {
         int[][] vectors = new int[objects.length][3];
         for (int i = 0; i < objects.length; i++) {
@@ -139,6 +122,17 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         return vectors;
     }
 
+    //Tests the code from the NDK which returns an array of pixels.
+    //Can be used in conjunction with the testing code.
+    private void testNDKCode(Mat rgba) {
+        if (counter == 50) {
+            byte[] bytes = testObjects(rgba.getNativeObjAddr());
+            logToFile(bytes);
+        }
+        counter++;
+    }
+
+    //Creates a new file for logging.
     private void newFile() {
         String fullPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/camerarec";
         try {
@@ -147,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
                 dir.mkdirs();
             }
             OutputStream fOut = null;
-            file = new File(fullPath, "text.txt");
+            file = new File(fullPath, "log.txt");
             if (file.exists())
                 file.delete();
             file.createNewFile();
@@ -156,11 +150,14 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         }
     }
 
+    //Logs a string to the log file
     private void logToFile(String string) {
         logToFile(string.getBytes(Charset.defaultCharset()));
     }
 
+    //Logs a byte array to the log file (good for images)
     private void logToFile(byte[] data) {
+        newFile();
         String fullPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/camerarec";
         try
         {
